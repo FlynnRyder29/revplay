@@ -37,3 +37,12 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+
+
+# Logs
+logs/
+*.log
+
+# Database credentials - IMPORTANT!
+src/main/resources/db.properties
