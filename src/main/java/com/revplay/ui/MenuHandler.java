@@ -1,9 +1,11 @@
 package com.revplay.ui;
 import com.revplay.model.User;
 import com.revplay.service.UserService;
+import com.revplay.util.InputValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.util.Scanner;
+import java.util.function.Predicate;
 public class MenuHandler {
     private static final Logger logger = LogManager.getLogger(MenuHandler.class);
     private Scanner scanner = new Scanner(System.in);
@@ -58,16 +60,33 @@ public class MenuHandler {
 
     private void register(String userType) {
         try {
-            System.out.print("Email: ");
-            String email = scanner.nextLine().trim();
-            System.out.print("Username: ");
-            String username = scanner.nextLine().trim();
-            System.out.print("Password (min 6 chars): ");
-            String password = scanner.nextLine();
+            String email = promptForInput("Email: ",
+                    InputValidator::isValidEmail,
+                    "Invalid email format! Please try again.");
+
+            String username = promptForInput("Username (3+ alphanumeric chars): ",
+                    InputValidator::isValidUsername,
+                    "Invalid username! Must be at least 3 chars and alphanumeric.");
+
+            String password = promptForInput("Password (min 6 chars): ",
+                    InputValidator::isValidPassword,
+                    "Invalid password! Must be at least 6 characters.");
+
             System.out.print("Security Question: ");
-            String secQ = scanner.nextLine();
+            String secQ = scanner.nextLine().trim();
+            while (secQ.isEmpty()) {
+                System.out.println("Security question cannot be empty.");
+                System.out.print("Security Question: ");
+                secQ = scanner.nextLine().trim();
+            }
+
             System.out.print("Security Answer: ");
-            String secA = scanner.nextLine();
+            String secA = scanner.nextLine().trim();
+            while (secA.isEmpty()) {
+                System.out.println("Security answer cannot be empty.");
+                System.out.print("Security Answer: ");
+                secA = scanner.nextLine().trim();
+            }
 
             User user = userService.register(email, password, username, userType, secQ, secA);
             if (user != null) {
@@ -80,11 +99,22 @@ public class MenuHandler {
                     userService.createArtistProfile(user.getUserId(), bio, genre, "");
                 }
             } else {
-                System.out.println("Registration failed! Check email/username format.");
+                System.out.println("Registration failed! Email or username might already exist.");
             }
         } catch (Exception e) {
             logger.error("Registration error", e);
             System.out.println("Registration error. Please try again.");
+        }
+    }
+
+    private String promptForInput(String prompt, Predicate<String> validator, String errorMessage) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+            if (validator.test(input)) {
+                return input;
+            }
+            System.out.println(errorMessage);
         }
     }
 

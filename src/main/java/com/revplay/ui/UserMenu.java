@@ -66,6 +66,10 @@ public class UserMenu {
     }
 
     private void displaySongs(List<Song> songs) {
+        if (songs.isEmpty()) {
+            System.out.println("No songs found.");
+            return;
+        }
         System.out.println("\n--- Songs ---");
         for (int i = 0; i < songs.size(); i++) {
             Song s = songs.get(i);
@@ -74,16 +78,27 @@ public class UserMenu {
     }
 
     private void songActions(List<Song> songs) {
+        if (songs.isEmpty()) return; // Extra safety
         System.out.println("\nActions: [P]lay, [F]avorite, [A]dd to playlist, [B]ack");
         String action = scanner.nextLine().toUpperCase();
         if (!"B".equals(action)) {
-            System.out.print("Song number: ");
-            int idx = Integer.parseInt(scanner.nextLine()) - 1;
-            Song song = songs.get(idx);
-            switch (action) {
-                case "P" -> { playerService.addToQueue(song); playerService.play(); }
-                case "F" -> { songService.addToFavorites(user.getUserId(), song.getSongId()); System.out.println("Added to favorites!"); }
-                case "A" -> addToPlaylist(song.getSongId());
+            // ... (rest of logic)
+            // Note: Keeping existing logic but careful about parsing
+            try {
+                System.out.print("Song number: ");
+                int idx = Integer.parseInt(scanner.nextLine()) - 1;
+                if (idx >= 0 && idx < songs.size()) {
+                    Song song = songs.get(idx);
+                    switch (action) {
+                        case "P" -> { playerService.addToQueue(song); playerService.play(); }
+                        case "F" -> { songService.addToFavorites(user.getUserId(), song.getSongId()); System.out.println("Added to favorites!"); }
+                        case "A" -> addToPlaylist(song.getSongId());
+                    }
+                } else {
+                    System.out.println("Invalid song selection.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input.");
             }
         }
     }
@@ -91,24 +106,43 @@ public class UserMenu {
     private void browseByGenre() {
         System.out.println("1.Pop 2.Rock 3.Hip-Hop 4.Jazz 5.Classical 6.Electronic 7.R&B 8.Country");
         System.out.print("Genre: ");
-        int genreId = Integer.parseInt(scanner.nextLine());
-        List<Song> songs = songService.getByGenre(genreId);
-        displaySongs(songs);
-        if (!songs.isEmpty()) songActions(songs);
+        try {
+            int genreId = Integer.parseInt(scanner.nextLine());
+            List<Song> songs = songService.getByGenre(genreId);
+            displaySongs(songs);
+            if (!songs.isEmpty()) songActions(songs);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid Genre ID.");
+        }
     }
 
     private void showFavorites() {
         List<Song> songs = songService.getFavorites(user.getUserId());
-        displaySongs(songs);
+        if (songs.isEmpty()) {
+            System.out.println("No favorites added yet.");
+        } else {
+            displaySongs(songs);
+            songActions(songs); // Allow actions on favorites too
+        }
     }
 
     private void managePlaylists() {
         System.out.println("\n1.View My Playlists 2.Create Playlist 3.Update Playlist 4.Delete Playlist");
-        int choice = Integer.parseInt(scanner.nextLine());
+        int choice;
+        try {
+            choice = Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            return;
+        }
+
         switch (choice) {
             case 1 -> {
                 List<Playlist> playlists = playlistService.getUserPlaylists(user.getUserId());
-                playlists.forEach(p -> System.out.println(p.getPlaylistId() + ". " + p.getName()));
+                if (playlists.isEmpty()) {
+                    System.out.println("No playlists found.");
+                } else {
+                    playlists.forEach(p -> System.out.println(p.getPlaylistId() + ". " + p.getName()));
+                }
             }
             case 2 -> createPlaylist();
             case 3 -> updatePlaylist();
@@ -151,26 +185,45 @@ public class UserMenu {
 
     private void addToPlaylist(int songId) {
         List<Playlist> playlists = playlistService.getUserPlaylists(user.getUserId());
+        if (playlists.isEmpty()) {
+            System.out.println("No playlists found. Create one first!");
+            return;
+        }
         playlists.forEach(p -> System.out.println(p.getPlaylistId() + ". " + p.getName()));
         System.out.print("Playlist ID: ");
-        int pid = Integer.parseInt(scanner.nextLine());
-        playlistService.addSong(pid, songId);
-        System.out.println("Added!");
+        try {
+            int pid = Integer.parseInt(scanner.nextLine());
+            playlistService.addSong(pid, songId);
+            System.out.println("Added!");
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid Playlist ID.");
+        }
     }
-
     private void showPublicPlaylists() {
         List<Playlist> playlists = playlistService.getPublicPlaylists();
-        playlists.forEach(p -> System.out.println(p.getPlaylistId() + ". " + p.getName() + " - " + p.getDescription()));
+        if (playlists.isEmpty()) {
+            System.out.println("No public playlists available.");
+        } else {
+            playlists.forEach(p -> System.out.println(p.getPlaylistId() + ". " + p.getName() + " - " + p.getDescription()));
+        }
     }
 
     private void showRecentlyPlayed() {
         List<Song> songs = songService.getRecentlyPlayed(user.getUserId());
-        displaySongs(songs);
+        if (songs.isEmpty()) {
+            System.out.println("No recently played songs.");
+        } else {
+            displaySongs(songs);
+        }
     }
 
     private void showHistory() {
         List<Song> songs = songService.getListeningHistory(user.getUserId());
-        displaySongs(songs);
+        if (songs.isEmpty()) {
+            System.out.println("No listening history.");
+        } else {
+            displaySongs(songs);
+        }
     }
 
     private void playerControls() {

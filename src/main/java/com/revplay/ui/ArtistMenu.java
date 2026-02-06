@@ -58,6 +58,8 @@ public class ArtistMenu {
         System.out.print("Title: ");
         String title = scanner.nextLine();
         System.out.print("Duration (seconds): ");
+        System.out.println("Available Genres:");
+        System.out.println("1.Pop 2.Rock 3.Hip-Hop 4.Jazz 5.Classical 6.Electronic 7.R&B 8.Country");
         int duration = Integer.parseInt(scanner.nextLine());
         System.out.print("Genre ID (1-8): ");
         int genreId = Integer.parseInt(scanner.nextLine());
@@ -70,8 +72,12 @@ public class ArtistMenu {
 
     private void viewMySongs() {
         List<Song> songs = songDAO.getByArtist(artist.getArtistId());
-        songs.forEach(s -> System.out.printf("%d. %s (%s) - Plays: %d%n",
-                s.getSongId(), s.getTitle(), s.getFormattedDuration(), s.getPlayCount()));
+        if (songs.isEmpty()) {
+            System.out.println("You haven't uploaded any songs yet.");
+        } else {
+            songs.forEach(s -> System.out.printf("%d. %s (%s) - Plays: %d%n",
+                    s.getSongId(), s.getTitle(), s.getFormattedDuration(), s.getPlayCount()));
+        }
     }
 
     private void updateProfile() {
@@ -87,22 +93,38 @@ public class ArtistMenu {
 
     private void viewStats() {
         List<Song> songs = songDAO.getByArtist(artist.getArtistId());
-        int totalPlays = songs.stream().mapToInt(Song::getPlayCount).sum();
-        System.out.println("Total Songs: " + songs.size());
-        System.out.println("Total Plays: " + totalPlays);
+        if (songs.isEmpty()) {
+            System.out.println("No stats available (no songs uploaded).");
+        } else {
+            int totalPlays = songs.stream().mapToInt(Song::getPlayCount).sum();
+            System.out.println("Total Songs: " + songs.size());
+            System.out.println("Total Plays: " + totalPlays);
+        }
     }
 
     private void viewFavoritedBy() {
         System.out.print("Song ID: ");
-        int songId = Integer.parseInt(scanner.nextLine());
-        List<String> users = favoriteDAO.getUsersWhoFavoritedSong(songId);
-        System.out.println("Favorited by: " + String.join(", ", users));
+        try {
+            int songId = Integer.parseInt(scanner.nextLine());
+            List<String> users = favoriteDAO.getUsersWhoFavoritedSong(songId);
+            if (users.isEmpty()) {
+                System.out.println("No users have favorited this song yet.");
+            } else {
+                System.out.println("Favorited by: " + String.join(", ", users));
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid Song ID.");
+        }
     }
 
     private void deleteSong() {
         System.out.print("Song ID: ");
-        int songId = Integer.parseInt(scanner.nextLine());
-        songDAO.delete(songId, artist.getArtistId());
-        System.out.println("Song deleted!");
+        try {
+            int songId = Integer.parseInt(scanner.nextLine());
+            songDAO.delete(songId, artist.getArtistId());
+            System.out.println("Song deleted (if it existed and belonged to you)!");
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid Song ID.");
+        }
     }
 }

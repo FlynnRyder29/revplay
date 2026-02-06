@@ -1,5 +1,4 @@
 package com.revplay.util;
-
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,8 +13,8 @@ public class DBConnection {
     private DBConnection() {}
 
     public static Connection getConnection() {
-        if (connection == null) {
-            try {
+        try {
+            if (connection == null || connection.isClosed()) {
                 Properties props = new Properties();
                 InputStream is = DBConnection.class.getClassLoader()
                         .getResourceAsStream("db.properties");
@@ -28,10 +27,10 @@ public class DBConnection {
                         props.getProperty("db.password")
                 );
                 connection.setAutoCommit(true);
-                logger.info("Database connected successfully");
-            } catch (Exception e) {
-                logger.error("Database connection failed", e);
+//                logger.info("Database connected successfully");
             }
+        } catch (Exception e) {
+            logger.error("Database connection failed", e);
         }
         return connection;
     }
