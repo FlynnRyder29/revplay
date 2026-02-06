@@ -84,6 +84,21 @@ public class SongDAO {
         return songs;
     }
 
+    public Song getRandomSong() {
+        String sql = "SELECT * FROM (SELECT s.*, u.username as artist_name FROM songs s " +
+                "JOIN artists ar ON s.artist_id = ar.artist_id " +
+                "JOIN users u ON ar.user_id = u.user_id " +
+                "ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapResultSetToSong(rs);
+        } catch (SQLException e) {
+            logger.error("Get random song failed", e);
+        }
+        return null;
+    }
+
     public void incrementPlayCount(int songId) {
         String sql = "UPDATE songs SET play_count = play_count + 1 WHERE song_id = ?";
         try (Connection conn = DBConnection.getConnection();

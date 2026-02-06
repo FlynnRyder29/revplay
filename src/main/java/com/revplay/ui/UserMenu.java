@@ -82,15 +82,17 @@ public class UserMenu {
         System.out.println("\nActions: [P]lay, [F]avorite, [A]dd to playlist, [B]ack");
         String action = scanner.nextLine().toUpperCase();
         if (!"B".equals(action)) {
-            // ... (rest of logic)
-            // Note: Keeping existing logic but careful about parsing
             try {
                 System.out.print("Song number: ");
                 int idx = Integer.parseInt(scanner.nextLine()) - 1;
                 if (idx >= 0 && idx < songs.size()) {
                     Song song = songs.get(idx);
                     switch (action) {
-                        case "P" -> { playerService.addToQueue(song); playerService.play(); }
+                        case "P" -> {
+                            playerService.addToQueue(song);
+                            playerService.play();
+                            playerControls(); // Automatically enter control loop
+                        }
                         case "F" -> { songService.addToFavorites(user.getUserId(), song.getSongId()); System.out.println("Added to favorites!"); }
                         case "A" -> addToPlaylist(song.getSongId());
                     }
@@ -227,16 +229,48 @@ public class UserMenu {
     }
 
     private void playerControls() {
-        System.out.println("\n[P]lay [U]pause [N]ext [R]Previous [T]Repeat [Q]ueue [C]lear [B]ack");
-        String cmd = scanner.nextLine().toUpperCase();
-        switch (cmd) {
-            case "P" -> playerService.play();
-            case "U" -> playerService.pause();
-            case "N" -> playerService.next();
-            case "R" -> playerService.previous();
-            case "T" -> playerService.toggleRepeat();
-            case "Q" -> playerService.showQueue();
-            case "C" -> playerService.clearQueue();
+        boolean inPlayerMode = true;
+        playerService.setSilentMode(false); // Enable progress bar
+
+        while (inPlayerMode) {
+            // clear screen roughly
+            System.out.println("\n------------------------------------------------");
+            // Dynamic Menu: Show Resume if paused, Pause if playing
+            String playPauseOption = playerService.isPlaying() ? "[U]pause" : "[R]esume/[P]lay";
+
+            System.out.printf("CONTROLS: %s [N]ext [P]revious [T]Repeat [Q]ueue [C]lear [B]ack%n", playPauseOption);
+            System.out.print("Command: ");
+
+            String cmd = scanner.nextLine().toUpperCase();
+            switch (cmd) {
+                case "P", "R" -> {
+                    if (playerService.isPlaying()) System.out.println("Already playing.");
+                    else if (playerService.hasCurrent()) playerService.resume();
+                    else playerService.play();
+                }
+                case "U" -> playerService.pause();
+                case "N" -> playerService.next();
+                // Fixed typo in menu logic for previous (was 'R' before, now 'P' for standard, but menu says 'Previous')
+                // Keeping 'R' for Repeat, using 'V' or 'L' or just keeping 'R' for Prev?
+                // Let's stick to standard: P=Play/Pause toggle often, but here separate.
+                // Let's use: N=Next, L=Last/Prev, U=Unpause/Pause, P=Play
+                // The previous code used R for Previous. Let's fix map:
+                // P -> Play/Resume
+                // U -> Pause
+                // N -> Next
+                // V -> Previous (PreVious)
+                // T -> Toggle Repeat
+                case "V" -> playerService.previous();
+                case "T" -> playerService.toggleRepeat();
+                case "Q" -> playerService.showQueue();
+                case "C" -> playerService.clearQueue();
+                case "B" -> {
+                    inPlayerMode = false;
+                    playerService.setSilentMode(true); // Suppress progress bar so it doesn't garble menu
+                    System.out.println("Returning to menu (music continues in background)...");
+                }
+                default -> System.out.println("Invalid command.");
+            }
         }
     }
 }
