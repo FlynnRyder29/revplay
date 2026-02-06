@@ -6,13 +6,15 @@ import java.util.Scanner;
 public class UserMenu {
     private Scanner scanner;
     private User user;
+    private MenuHandler menuHandler;
     private SongService songService = new SongService();
     private PlaylistService playlistService = new PlaylistService();
     private PlayerService playerService = new PlayerService();
 
-    public UserMenu(Scanner scanner, User user) {
+    public UserMenu(Scanner scanner, User user, MenuHandler menuHandler) {
         this.scanner = scanner;
         this.user = user;
+        this.menuHandler = menuHandler;
         playerService.setCurrentUser(user.getUserId());
     }
 
@@ -30,7 +32,14 @@ public class UserMenu {
         System.out.println("0. Logout");
         System.out.print("Choice: ");
 
-        int choice = Integer.parseInt(scanner.nextLine());
+        int choice;
+        try {
+            choice = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input!");
+            return;
+        }
+
         switch (choice) {
             case 1 -> searchSongs();
             case 2 -> browseByGenre();
@@ -40,7 +49,11 @@ public class UserMenu {
             case 6 -> showRecentlyPlayed();
             case 7 -> showHistory();
             case 8 -> playerControls();
-            case 0 -> { new MenuHandler().logout(); System.out.println("Logged out"); }
+            case 0 -> {
+                menuHandler.logout();
+                System.out.println("Logged out successfully!");
+            }
+            default -> System.out.println("Invalid choice!");
         }
     }
 

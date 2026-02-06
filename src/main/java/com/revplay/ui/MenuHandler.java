@@ -16,9 +16,9 @@ public class MenuHandler {
                 if (currentUser == null) {
                     showMainMenu();
                 } else if ("ARTIST".equals(currentUser.getUserType())) {
-                    new ArtistMenu(scanner, currentUser).show();
+                    new ArtistMenu(scanner, currentUser, this).show();
                 } else {
-                    new UserMenu(scanner, currentUser).show();
+                    new UserMenu(scanner, currentUser, this).show();
                 }
             } catch (Exception e) {
                 logger.error("Error in menu", e);

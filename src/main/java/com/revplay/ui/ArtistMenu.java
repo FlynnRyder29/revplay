@@ -8,13 +8,15 @@ public class ArtistMenu {
     private Scanner scanner;
     private User user;
     private Artist artist;
+    private MenuHandler menuHandler;
     private SongDAO songDAO = new SongDAO();
     private FavoriteDAO favoriteDAO = new FavoriteDAO();
     private ArtistDAO artistDAO = new ArtistDAO();
 
-    public ArtistMenu(Scanner scanner, User user) {
+    public ArtistMenu(Scanner scanner, User user, MenuHandler menuHandler) {
         this.scanner = scanner;
         this.user = user;
+        this.menuHandler = menuHandler;
         this.artist = artistDAO.getByUserId(user.getUserId());
     }
 
@@ -29,7 +31,14 @@ public class ArtistMenu {
         System.out.println("0. Logout");
         System.out.print("Choice: ");
 
-        int choice = Integer.parseInt(scanner.nextLine());
+        int choice;
+        try {
+            choice = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input!");
+            return;
+        }
+
         switch (choice) {
             case 1 -> uploadSong();
             case 2 -> viewMySongs();
@@ -37,7 +46,11 @@ public class ArtistMenu {
             case 4 -> viewStats();
             case 5 -> viewFavoritedBy();
             case 6 -> deleteSong();
-            case 0 -> new MenuHandler().logout();
+            case 0 -> {
+                menuHandler.logout();
+                System.out.println("Logged out successfully!");
+            }
+            default -> System.out.println("Invalid choice!");
         }
     }
 

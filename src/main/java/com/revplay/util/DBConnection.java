@@ -27,6 +27,7 @@ public class DBConnection {
                         props.getProperty("db.username"),
                         props.getProperty("db.password")
                 );
+                connection.setAutoCommit(true);
                 logger.info("Database connected successfully");
             } catch (Exception e) {
                 logger.error("Database connection failed", e);
