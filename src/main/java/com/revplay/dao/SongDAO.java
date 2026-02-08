@@ -83,6 +83,36 @@ public class SongDAO {
         }
         return songs;
     }
+    public List<Song> getByAlbum(int albumId) {
+        String sql = "SELECT s.*, u.username as artist_name FROM songs s " +
+                "JOIN artists ar ON s.artist_id = ar.artist_id " +
+                "JOIN users u ON ar.user_id = u.user_id WHERE s.album_id = ?";
+        List<Song> songs = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, albumId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) songs.add(mapResultSetToSong(rs));
+        } catch (SQLException e) {
+            logger.error("Get by album failed", e);
+        }
+        return songs;
+    }
+    public boolean update(Song song) {
+        String sql = "UPDATE songs SET title = ?, genre_id = ?, album_id = ? WHERE song_id = ? AND artist_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, song.getTitle());
+            ps.setObject(2, song.getGenreId());
+            ps.setObject(3, song.getAlbumId());
+            ps.setInt(4, song.getSongId());
+            ps.setInt(5, song.getArtistId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.error("Update song failed", e);
+            return false;
+        }
+    }
 
     public Song getRandomSong() {
         String sql = "SELECT * FROM (SELECT s.*, u.username as artist_name FROM songs s " +
@@ -128,8 +158,17 @@ public class SongDAO {
         song.setSongId(rs.getInt("song_id"));
         song.setArtistId(rs.getInt("artist_id"));
         song.setTitle(rs.getString("title"));
+
+        int albumId = rs.getInt("album_id");
+        if (!rs.wasNull()) song.setAlbumId(albumId);
+
+        int genreId = rs.getInt("genre_id");
+        if (!rs.wasNull()) song.setGenreId(genreId);
+
         song.setDurationSeconds(rs.getInt("duration_seconds"));
+        song.setReleaseDate(rs.getObject("release_date", java.time.LocalDate.class));
         song.setPlayCount(rs.getInt("play_count"));
+
         try { song.setArtistName(rs.getString("artist_name")); } catch (SQLException ignored) {}
         return song;
     }

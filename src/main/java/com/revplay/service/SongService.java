@@ -40,4 +40,8 @@ public class SongService {
     public List<Song> getListeningHistory(int userId) {
         return historyDAO.getListeningHistory(userId);
     }
+
+    public boolean updateSong(Song song) {
+        return songDAO.update(song);
+    }
 }
