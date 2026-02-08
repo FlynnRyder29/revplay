@@ -61,6 +61,21 @@ public class UserDAO {
         return null;
     }
 
+    public User findById(int userId) {
+        String sql = "SELECT * FROM users WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return mapResultSetToUser(rs);
+            }
+        } catch (SQLException e) {
+            logger.error("Find by ID failed", e);
+        }
+        return null;
+    }
+
     public boolean updatePassword(int userId, String newPasswordHash) {
         String sql = "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?";
         try (Connection conn = DBConnection.getConnection();

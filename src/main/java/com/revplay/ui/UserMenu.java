@@ -8,6 +8,7 @@ public class UserMenu {
     private User user;
     private MenuHandler menuHandler;
     private SongService songService = new SongService();
+    private UserService userService = new UserService();
     private PlaylistService playlistService = new PlaylistService();
     private PlayerService playerService = new PlayerService();
 
@@ -49,11 +50,25 @@ public class UserMenu {
             case 6 -> showRecentlyPlayed();
             case 7 -> showHistory();
             case 8 -> playerControls();
+            case 9 -> changePassword();
             case 0 -> {
                 menuHandler.logout();
                 System.out.println("Logged out successfully!");
             }
             default -> System.out.println("Invalid choice!");
+        }
+    }
+
+    private void changePassword() {
+        System.out.print("Current Password: ");
+        String oldPass = scanner.nextLine();
+        System.out.print("New Password: ");
+        String newPass = scanner.nextLine();
+
+        if (userService.changePassword(user.getUserId(), oldPass, newPass)) {
+            System.out.println("Password changed successfully!");
+        } else {
+            System.out.println("Failed to change password. Old password might be incorrect.");
         }
     }
 

@@ -9,6 +9,7 @@ public class ArtistMenu {
     private User user;
     private Artist artist;
     private MenuHandler menuHandler;
+    private UserService userService = new UserService();
     private SongDAO songDAO = new SongDAO();
     private FavoriteDAO favoriteDAO = new FavoriteDAO();
     private ArtistDAO artistDAO = new ArtistDAO();
@@ -28,6 +29,7 @@ public class ArtistMenu {
         System.out.println("4. View Song Stats");
         System.out.println("5. Who Favorited My Songs");
         System.out.println("6. Delete Song");
+        System.out.println("7. Change Password");
         System.out.println("0. Logout");
         System.out.print("Choice: ");
 
@@ -46,6 +48,7 @@ public class ArtistMenu {
             case 4 -> viewStats();
             case 5 -> viewFavoritedBy();
             case 6 -> deleteSong();
+            case 7 -> changePassword();
             case 0 -> {
                 menuHandler.logout();
                 System.out.println("Logged out successfully!");
@@ -58,9 +61,10 @@ public class ArtistMenu {
         System.out.print("Title: ");
         String title = scanner.nextLine();
         System.out.print("Duration (seconds): ");
+        int duration = Integer.parseInt(scanner.nextLine());
+
         System.out.println("Available Genres:");
         System.out.println("1.Pop 2.Rock 3.Hip-Hop 4.Jazz 5.Classical 6.Electronic 7.R&B 8.Country");
-        int duration = Integer.parseInt(scanner.nextLine());
         System.out.print("Genre ID (1-8): ");
         int genreId = Integer.parseInt(scanner.nextLine());
 
@@ -125,6 +129,19 @@ public class ArtistMenu {
             System.out.println("Song deleted (if it existed and belonged to you)!");
         } catch (NumberFormatException e) {
             System.out.println("Invalid Song ID.");
+        }
+    }
+
+    private void changePassword() {
+        System.out.print("Current Password: ");
+        String oldPass = scanner.nextLine();
+        System.out.print("New Password: ");
+        String newPass = scanner.nextLine();
+
+        if (userService.changePassword(user.getUserId(), oldPass, newPass)) {
+            System.out.println("Password changed successfully!");
+        } else {
+            System.out.println("Failed to change password. Old password might be incorrect.");
         }
     }
 }

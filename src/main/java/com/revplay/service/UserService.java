@@ -35,7 +35,9 @@ public class UserService {
     }
 
     public boolean changePassword(int userId, String oldPassword, String newPassword) {
-        User user = userDAO.findByEmail(userDAO.findByEmail(null).getEmail()); // Simplified
+        if (!InputValidator.isValidPassword(newPassword)) return false;
+
+        User user = userDAO.findById(userId);
         if (user != null && PasswordUtils.verifyPassword(oldPassword, user.getPasswordHash())) {
             return userDAO.updatePassword(userId, PasswordUtils.hashPassword(newPassword));
         }
