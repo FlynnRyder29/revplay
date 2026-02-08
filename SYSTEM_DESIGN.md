@@ -117,19 +117,26 @@ classDiagram
 Visualizes the physical organization and dependencies of the system components.
 
 ```mermaid
-component {
-    [Console UI] <<Interface>> as UI
-    [Business logic] <<Service Layer>> as Service
-    [Data Access] <<DAO>> as DAO
-    [DB Connector] <<Utility>> as Util
-    database "Oracle DB" as DB
-}
+graph TD
+    subgraph "Presentation"
+        UI["Console UI (Interface)"]
+    end
+    subgraph "Business Logic"
+        Service["Service Layer"]
+    end
+    subgraph "Data Access"
+        DAO["DAO Classes"]
+    end
+    subgraph "Infrastructure"
+        Util["Utility Classes"]
+        DB[(Oracle Database)]
+    end
 
-UI ..> Service : "Command"
-Service ..> DAO : "Manage Data"
-DAO ..> DB : "SQL/JDBC"
-Service ..> Util : "Pass Hash/Logging"
-DAO ..> Util : "Shared Connection"
+    UI -->|Command| Service
+    Service -->|Manage Data| DAO
+    DAO -->|SQL/JDBC| DB
+    Service -.->|Security/Logging| Util
+    DAO -.->|Shared Connection| Util
 ```
 
 ---
@@ -186,18 +193,19 @@ RevPlay implements a multi-layered security strategy:
 The application is deployed as a standalone JAR on a client machine, connecting to a centralized Oracle Database.
 
 ```mermaid
-deployment {
-    node "User PC" {
-        artifact "RevPlay.jar" as APP
-        component "Java Runtime Env"
-    }
+graph TB
+    subgraph "Physical Tier: Client Machine"
+        direction TB
+        JRE["Java Runtime Environment"]
+        JAR["RevPlay.jar (Standalone App)"]
+        JAR --- JRE
+    end
 
-    node "Database Server" {
-        database "Oracle 21c/XE" as Oracle
-    }
+    subgraph "Physical Tier: Server"
+        Oracle[(Oracle Database 21c/XE)]
+    end
 
-    APP -- Oracle : "JDBC (TCP/1521)"
-}
+    JAR ==>|JDBC over TCP/1521| Oracle
 ```
 
 - **Client**: Any OS with JRE 17+ installed.
