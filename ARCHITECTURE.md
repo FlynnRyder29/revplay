@@ -182,3 +182,18 @@ erDiagram
     *   **Favorites**: Many-to-Many between Users and Songs.
     *   **History**: Logs every play event (User -> Song).
     *   **Recently Played**: Keeps track of the last time a user played a specific song (Upsert logic).
+
+### 6. Thread Safety & Concurrency
+The **PlayerService** operates in a multi-threaded environment. To ensure stability:
+- **Concurrent Collections**: Internal song queues use `CopyOnWriteArrayList` to prevent race conditions during simultaneous user interactions.
+- **Volatile State**: Playback flags (`isPlaying`, `silentMode`) are marked as `volatile` to ensure immediate visibility across UI and Player threads.
+- **Controlled Interruption**: Uses `thread.interrupt()` for deterministic stopping and cleanup of audio simulations.
+
+### 7. Testing Architecture
+RevPlay employs a **Hybrid Testing Strategy**:
+- **Unit Layer (H2 DB)**: High-speed, in-memory isolation for testing business logic and DAO mappings without side effects.
+- **Integration Layer (Oracle DB)**: Verifies real-world connectivity, Oracle-specific SQL functionality (like `DBMS_RANDOM`), and complex integrity constraints.
+- **Feature Suites**: Tests are categorized into 9 distinct domains (Security, Concurrency, etc.) for granular quality assurance.
+
+---
+*Last Updated: February 2026*

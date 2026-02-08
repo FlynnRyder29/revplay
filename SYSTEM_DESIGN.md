@@ -177,7 +177,7 @@ sequenceDiagram
 
 RevPlay implements a multi-layered security strategy:
 
-1.  **Authentication Security**:
+1.  **Authentication Security**: 
     - Passwords are never stored in plain text.
     - Uses **SHA-256 Hashing with dynamic Salt** (unique per user) to prevent rainbow table attacks.
 2.  **Data Persistence Security**:
@@ -185,6 +185,10 @@ RevPlay implements a multi-layered security strategy:
     - **Principle of Least Privilege**: DAO methods are scoped to specific tables.
 3.  **Input Validation**:
     - Centralized `InputValidator` checks email formats, username patterns, and password complexity.
+4.  **Data Integrity & Transaction Safety**:
+    - **Atomic Operations**: Critical multi-table updates (e.g., recording play history and incrementing counts) are tested for ACID compliance.
+    - **Constraint Enforcement**: Schema-level constraints (Foreign Keys, NOT NULL) are strictly validated in both code and integration tests.
+    - **Concurrent Order Preservation**: Thread-safe collections ensure queue integrity even under high-load multi-threaded scenarios.
 
 ---
 
