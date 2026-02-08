@@ -1,4 +1,5 @@
 package com.revplay.dao;
+
 import com.revplay.model.Playlist;
 import com.revplay.model.Song;
 import com.revplay.util.DBConnection;
@@ -7,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
 public class PlaylistDAO {
     private static final Logger logger = LogManager.getLogger(PlaylistDAO.class);
 
@@ -109,6 +111,47 @@ public class PlaylistDAO {
             logger.error("Delete playlist failed", e);
             return false;
         }
+    }
+
+    public List<Song> getSongsInPlaylist(int playlistId) {
+        String sql = "SELECT s.*, u.username as artist_name FROM playlist_songs ps " +
+                "JOIN songs s ON ps.song_id = s.song_id " +
+                "JOIN artists ar ON s.artist_id = ar.artist_id " +
+                "JOIN users u ON ar.user_id = u.user_id " +
+                "WHERE ps.playlist_id = ? ORDER BY ps.position";
+        List<Song> songs = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Song song = new Song();
+                song.setSongId(rs.getInt("song_id"));
+                song.setTitle(rs.getString("title"));
+                song.setArtistName(rs.getString("artist_name"));
+                song.setDurationSeconds(rs.getInt("duration_seconds"));
+                songs.add(song);
+            }
+        } catch (SQLException e) {
+            logger.error("Get playlist songs failed", e);
+        }
+        return songs;
+    }
+
+    public List<Playlist> search(String keyword) {
+        String sql = "SELECT * FROM playlists WHERE LOWER(name) LIKE ? OR LOWER(description) LIKE ?";
+        List<Playlist> playlists = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            String kw = "%" + keyword.toLowerCase() + "%";
+            ps.setString(1, kw);
+            ps.setString(2, kw);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) playlists.add(mapResultSetToPlaylist(rs));
+        } catch (SQLException e) {
+            logger.error("Search playlists failed", e);
+        }
+        return playlists;
     }
 
     private Playlist mapResultSetToPlaylist(ResultSet rs) throws SQLException {

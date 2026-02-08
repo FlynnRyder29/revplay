@@ -1,7 +1,9 @@
 package com.revplay.service;
+
 import com.revplay.dao.PlaylistDAO;
 import com.revplay.model.Playlist;
 import java.util.List;
+
 public class PlaylistService {
     private PlaylistDAO playlistDAO = new PlaylistDAO();
 
@@ -28,6 +30,14 @@ public class PlaylistService {
 
     public boolean update(Playlist playlist) {
         return playlistDAO.update(playlist);
+    }
+
+    public List<com.revplay.model.Song> getPlaylistSongs(int playlistId) {
+        return playlistDAO.getSongsInPlaylist(playlistId);
+    }
+
+    public List<Playlist> searchPlaylists(String keyword) {
+        return playlistDAO.search(keyword);
     }
 
     public boolean delete(int playlistId, int userId) {

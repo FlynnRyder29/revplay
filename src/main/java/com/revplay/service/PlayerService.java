@@ -100,7 +100,9 @@ public class PlayerService {
 
     private void stopThread() {
         if (playerThread != null && playerThread.isAlive()) {
-            playerThread.interrupt();
+            if (playerThread != Thread.currentThread()) {
+                playerThread.interrupt();
+            }
         }
     }
 

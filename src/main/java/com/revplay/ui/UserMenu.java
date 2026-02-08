@@ -220,7 +220,7 @@ public class UserMenu {
     }
 
     private void managePlaylists() {
-        System.out.println("\n1.View My Playlists 2.Create Playlist 3.Update Playlist 4.Delete Playlist");
+        System.out.println("\n1.View My Playlists 2.Create Playlist 3.Update Playlist 4.Delete Playlist 5.Search Playlists");
         int choice;
         try {
             choice = Integer.parseInt(scanner.nextLine());
@@ -229,20 +229,111 @@ public class UserMenu {
         }
 
         switch (choice) {
-            case 1 -> {
-                List<Playlist> playlists = playlistService.getUserPlaylists(user.getUserId());
-                if (playlists.isEmpty()) {
-                    System.out.println("No playlists found.");
-                } else {
-                    playlists.forEach(p -> System.out.println(p.getPlaylistId() + ". " + p.getName()));
-                }
-            }
+            case 1 -> viewMyPlaylists();
             case 2 -> createPlaylist();
             case 3 -> updatePlaylist();
             case 4 -> deletePlaylist();
+            case 5 -> searchPlaylists();
         }
     }
 
+    private void viewMyPlaylists() {
+        List<Playlist> playlists = playlistService.getUserPlaylists(user.getUserId());
+        if (playlists.isEmpty()) {
+            System.out.println("No playlists found.");
+            return;
+        }
+        playlists.forEach(p -> System.out.println(p.getPlaylistId() + ". " + p.getName()));
+        playlistActions();
+    }
+
+    private void playlistActions() {
+        System.out.println("Select Playlist ID to Manage/Play (0 to cancel): ");
+        try {
+            int pid = Integer.parseInt(scanner.nextLine());
+            if (pid == 0) return;
+
+            System.out.println("1. Play Playlist");
+            System.out.println("2. View Songs");
+            System.out.println("3. Remove Song");
+            System.out.println("0. Back");
+            System.out.print("Choice: ");
+            int action = Integer.parseInt(scanner.nextLine());
+
+            switch(action) {
+                case 1 -> playPlaylist(pid);
+                case 2 -> viewPlaylistSongs(pid);
+                case 3 -> removeSongFromPlaylist(pid);
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input");
+        }
+    }
+
+    private void playPlaylist(int playlistId) {
+        List<Song> songs = playlistService.getPlaylistSongs(playlistId);
+        if (songs.isEmpty()) {
+            System.out.println("Playlist is empty!");
+            return;
+        }
+        playerService.clearQueue();
+        songs.forEach(playerService::addToQueue);
+        System.out.println("Playlist loaded into queue!");
+        playerService.play();
+        playerControls();
+    }
+
+    private void viewPlaylistSongs(int playlistId) {
+        List<Song> songs = playlistService.getPlaylistSongs(playlistId);
+        if (songs.isEmpty()) {
+            System.out.println("Playlist is empty.");
+        } else {
+            displaySongs(songs);
+        }
+    }
+
+    private void removeSongFromPlaylist(int playlistId) {
+        List<Song> songs = playlistService.getPlaylistSongs(playlistId);
+        if (songs.isEmpty()) {
+            System.out.println("Playlist is empty.");
+            return;
+        }
+        displaySongs(songs);
+        System.out.print("Song Number to Remove: ");
+        try {
+            int idx = Integer.parseInt(scanner.nextLine()) - 1;
+            if (idx >= 0 && idx < songs.size()) {
+                Song s = songs.get(idx);
+                if (playlistService.removeSong(playlistId, s.getSongId())) {
+                    System.out.println("Removed from playlist.");
+                } else {
+                    System.out.println("Failed to remove.");
+                }
+            } else {
+                System.out.println("Invalid selection.");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input");
+        }
+    }
+
+    private void searchPlaylists() {
+        System.out.print("Search Keyword: ");
+        String kw = scanner.nextLine();
+        List<Playlist> playlists = playlistService.searchPlaylists(kw);
+        if (playlists.isEmpty()) {
+            System.out.println("No playlists found.");
+        } else {
+            playlists.forEach(p -> System.out.println(p.getPlaylistId() + ". " + p.getName() + " (" + p.getDescription() + ")"));
+            System.out.println("Select Playlist ID to Play (0 to skip): ");
+            try {
+                int pid = Integer.parseInt(scanner.nextLine());
+                if (pid > 0) playPlaylist(pid);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+    }
     private void createPlaylist() {
         System.out.print("Name: ");
         String name = scanner.nextLine();
@@ -298,6 +389,13 @@ public class UserMenu {
             System.out.println("No public playlists available.");
         } else {
             playlists.forEach(p -> System.out.println(p.getPlaylistId() + ". " + p.getName() + " - " + p.getDescription()));
+            System.out.println("Select Playlist ID to Play (0 to skip): ");
+            try {
+                int pid = Integer.parseInt(scanner.nextLine());
+                if (pid > 0) playPlaylist(pid);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
         }
     }
 
@@ -329,7 +427,7 @@ public class UserMenu {
             // Dynamic Menu: Show Resume if paused, Pause if playing
             String playPauseOption = playerService.isPlaying() ? "[U]pause" : "[R]esume/[P]lay";
 
-            System.out.printf("CONTROLS: %s [N]ext [P]revious [T]Repeat [Q]ueue [C]lear [B]ack%n", playPauseOption);
+            System.out.printf("CONTROLS: %s [N]ext [V]Previous [T]Repeat [Q]ueue [C]lear [B]ack%n", playPauseOption);
             System.out.print("Command: ");
 
             String cmd = scanner.nextLine().toUpperCase();
