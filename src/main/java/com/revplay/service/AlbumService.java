@@ -1,10 +1,12 @@
 package com.revplay.service;
+
 import com.revplay.dao.AlbumDAO;
 import com.revplay.model.Album;
 import com.revplay.model.Song;
 import com.revplay.dao.SongDAO;
 import java.util.List;
 import java.time.LocalDate;
+
 public class AlbumService {
     private AlbumDAO albumDAO = new AlbumDAO();
     private SongDAO songDAO = new SongDAO();
@@ -17,6 +19,10 @@ public class AlbumService {
 
     public List<Album> getByArtist(int artistId) {
         return albumDAO.getByArtist(artistId);
+    }
+
+    public List<Album> getAllAlbums() {
+        return albumDAO.getAll();
     }
 
     public boolean delete(int albumId, int artistId) {

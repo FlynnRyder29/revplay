@@ -1,9 +1,11 @@
 package com.revplay.service;
+
 import com.revplay.dao.SongDAO;
 import com.revplay.dao.FavoriteDAO;
 import com.revplay.dao.HistoryDAO;
 import com.revplay.model.Song;
 import java.util.List;
+
 public class SongService {
     private SongDAO songDAO = new SongDAO();
     private FavoriteDAO favoriteDAO = new FavoriteDAO();
@@ -19,6 +21,10 @@ public class SongService {
 
     public List<Song> getByArtist(int artistId) {
         return songDAO.getByArtist(artistId);
+    }
+
+    public List<Song> getByAlbum(int albumId) {
+        return songDAO.getByAlbum(albumId);
     }
 
     public boolean addToFavorites(int userId, int songId) {

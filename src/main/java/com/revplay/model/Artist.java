@@ -1,9 +1,9 @@
 package com.revplay.model;
-import java.io.Serial;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
 public class Artist implements Serializable {
-    @Serial
     private static final long serialVersionUID = 1L;
 
     private int artistId;
@@ -12,6 +12,9 @@ public class Artist implements Serializable {
     private String genre;
     private String socialLinks;
     private LocalDateTime createdAt;
+
+    // For display
+    private String name;
 
     public Artist() {}
 
@@ -34,4 +37,6 @@ public class Artist implements Serializable {
     public void setSocialLinks(String socialLinks) { this.socialLinks = socialLinks; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 }

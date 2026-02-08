@@ -1,10 +1,12 @@
 package com.revplay.service;
+
 import com.revplay.dao.UserDAO;
 import com.revplay.dao.ArtistDAO;
 import com.revplay.model.User;
 import com.revplay.model.Artist;
 import com.revplay.util.PasswordUtils;
 import com.revplay.util.InputValidator;
+
 public class UserService {
     private UserDAO userDAO = new UserDAO();
     private ArtistDAO artistDAO = new ArtistDAO();
@@ -64,5 +66,9 @@ public class UserService {
 
     public Artist getArtistProfile(int userId) {
         return artistDAO.getByUserId(userId);
+    }
+
+    public java.util.List<Artist> getAllArtists() {
+        return artistDAO.getAll();
     }
 }

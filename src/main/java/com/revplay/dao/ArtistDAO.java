@@ -4,6 +4,8 @@ import com.revplay.util.DBConnection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 public class ArtistDAO {
     private static final Logger logger = LogManager.getLogger(ArtistDAO.class);
 
@@ -31,19 +33,40 @@ public class ArtistDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                Artist a = new Artist();
-                a.setArtistId(rs.getInt("artist_id"));
-                a.setUserId(rs.getInt("user_id"));
-                a.setBio(rs.getString("bio"));
-                a.setGenre(rs.getString("genre"));
-                a.setSocialLinks(rs.getString("social_links"));
-                return a;
-            }
+            if (rs.next()) return mapResultSetToArtist(rs);
         } catch (SQLException e) {
-            logger.error("Get artist failed", e);
+            logger.error("Get artist by user id failed", e);
         }
         return null;
+    }
+    public Artist getById(int artistId) {
+        String sql = "SELECT * FROM artists WHERE artist_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, artistId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapResultSetToArtist(rs);
+        } catch (SQLException e) {
+            logger.error("Get artist by id failed", e);
+        }
+        return null;
+    }
+
+    public List<Artist> getAll() {
+        String sql = "SELECT a.*, u.username FROM artists a JOIN users u ON a.user_id = u.user_id";
+        List<Artist> artists = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Artist a = mapResultSetToArtist(rs);
+                a.setName(rs.getString("username")); // Map username to artist name
+                artists.add(a);
+            }
+        } catch (SQLException e) {
+            logger.error("Get all artists failed", e);
+        }
+        return artists;
     }
 
     public boolean update(Artist artist) {
@@ -59,5 +82,15 @@ public class ArtistDAO {
             logger.error("Update artist failed", e);
             return false;
         }
+    }
+
+    private Artist mapResultSetToArtist(ResultSet rs) throws SQLException {
+        Artist a = new Artist();
+        a.setArtistId(rs.getInt("artist_id"));
+        a.setUserId(rs.getInt("user_id"));
+        a.setBio(rs.getString("bio"));
+        a.setGenre(rs.getString("genre"));
+        a.setSocialLinks(rs.getString("social_links"));
+        return a;
     }
 }

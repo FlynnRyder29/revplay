@@ -41,6 +41,19 @@ public class AlbumDAO {
         return albums;
     }
 
+    public List<Album> getAll() {
+        String sql = "SELECT * FROM albums";
+        List<Album> albums = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) albums.add(mapResultSetToAlbum(rs));
+        } catch (SQLException e) {
+            logger.error("Get all albums failed", e);
+        }
+        return albums;
+    }
+
     public Album getById(int albumId) {
         String sql = "SELECT * FROM albums WHERE album_id = ?";
         try (Connection conn = DBConnection.getConnection();

@@ -10,6 +10,7 @@ public class UserMenu {
     private SongService songService = new SongService();
     private UserService userService = new UserService();
     private PlaylistService playlistService = new PlaylistService();
+    private AlbumService albumService = new AlbumService();
     private PlayerService playerService = new PlayerService();
 
     public UserMenu(Scanner scanner, User user, MenuHandler menuHandler) {
@@ -22,7 +23,7 @@ public class UserMenu {
     public void show() {
         System.out.println("\n--- " + user.getUsername() + "'s Menu ---");
         System.out.println("1. Search Songs");
-        System.out.println("2. Browse by Genre");
+        System.out.println("2. Browse Library (Genre/Artist/Album)");
         System.out.println("3. My Favorites");
         System.out.println("4. My Playlists");
         System.out.println("5. Public Playlists");
@@ -43,7 +44,7 @@ public class UserMenu {
 
         switch (choice) {
             case 1 -> searchSongs();
-            case 2 -> browseByGenre();
+            case 2 -> browseLibrary();
             case 3 -> showFavorites();
             case 4 -> managePlaylists();
             case 5 -> showPublicPlaylists();
@@ -120,6 +121,81 @@ public class UserMenu {
         }
     }
 
+    private void browseLibrary() {
+        System.out.println("\n--- Browse Library ---");
+        System.out.println("1. By Genre");
+        System.out.println("2. By Artist");
+        System.out.println("3. By Album");
+        System.out.println("0. Back");
+        System.out.print("Choice: ");
+
+        try {
+            int choice = Integer.parseInt(scanner.nextLine().trim());
+            switch (choice) {
+                case 1 -> browseByGenre();
+                case 2 -> browseByArtist();
+                case 3 -> browseByAlbum();
+                case 0 -> { return; }
+                default -> System.out.println("Invalid choice.");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input.");
+        }
+    }
+
+    private void browseByArtist() {
+        List<Artist> artists = userService.getAllArtists();
+        if (artists.isEmpty()) {
+            System.out.println("No artists found.");
+            return;
+        }
+
+        System.out.println("\n--- Artists ---");
+        for (int i=0; i < artists.size(); i++) {
+            System.out.println((i+1) + ". " + artists.get(i).getName());
+        }
+        System.out.print("Select Artist Number: ");
+
+        try {
+            int idx = Integer.parseInt(scanner.nextLine().trim()) - 1;
+            if (idx >= 0 && idx < artists.size()) {
+                List<Song> songs = songService.getByArtist(artists.get(idx).getArtistId());
+                displaySongs(songs);
+                if (!songs.isEmpty()) songActions(songs);
+            } else {
+                System.out.println("Invalid selection.");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input.");
+        }
+    }
+
+    private void browseByAlbum() {
+        List<Album> albums = albumService.getAllAlbums();
+        if (albums.isEmpty()) {
+            System.out.println("No albums found.");
+            return;
+        }
+
+        System.out.println("\n--- Albums ---");
+        for (int i=0; i < albums.size(); i++) {
+            System.out.println((i+1) + ". " + albums.get(i).getTitle());
+        }
+        System.out.print("Select Album Number: ");
+
+        try {
+            int idx = Integer.parseInt(scanner.nextLine().trim()) - 1;
+            if (idx >= 0 && idx < albums.size()) {
+                List<Song> songs = songService.getByAlbum(albums.get(idx).getAlbumId());
+                displaySongs(songs);
+                if (!songs.isEmpty()) songActions(songs);
+            } else {
+                System.out.println("Invalid selection.");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input.");
+        }
+    }
     private void browseByGenre() {
         System.out.println("1.Pop 2.Rock 3.Hip-Hop 4.Jazz 5.Classical 6.Electronic 7.R&B 8.Country");
         System.out.print("Genre: ");
