@@ -1,38 +1,20 @@
 package com.revplay;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import com.revplay.util.DBConnection;
+import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
+import java.sql.Connection;
 
-/**
- * Unit test for simple App.
- */
-public class AppTest 
-    extends TestCase
-{
-    /**
-     * Create the test case
-     *
-     * @param testName name of the test case
-     */
-    public AppTest( String testName )
-    {
-        super( testName );
-    }
+public class AppTest {
 
-    /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( AppTest.class );
-    }
-
-    /**
-     * Rigourous Test :-)
-     */
-    public void testApp()
-    {
-        assertTrue( true );
+    @Test
+    @DisplayName("Verify Database Connectivity")
+    void testDatabaseConnection() {
+        try (Connection conn = DBConnection.getConnection()) {
+            assertNotNull(conn, "Database connection should not be null");
+            assertFalse(conn.isClosed(), "Database connection should be open");
+        } catch (Exception e) {
+            fail("Database connection failed: " + e.getMessage());
+        }
     }
 }

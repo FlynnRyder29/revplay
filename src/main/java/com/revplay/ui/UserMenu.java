@@ -427,7 +427,7 @@ public class UserMenu {
             // Dynamic Menu: Show Resume if paused, Pause if playing
             String playPauseOption = playerService.isPlaying() ? "[U]pause" : "[R]esume/[P]lay";
 
-            System.out.printf("CONTROLS: %s [N]ext [V]Previous [T]Repeat [Q]ueue [C]lear [B]ack%n", playPauseOption);
+            System.out.printf("CONTROLS: %s [N]ext [V]Previous [T]Repeat [Q]ueue [C]lear [S]top [B]ack%n", playPauseOption);
             System.out.print("Command: ");
 
             String cmd = scanner.nextLine().toUpperCase();
@@ -453,6 +453,11 @@ public class UserMenu {
                 case "T" -> playerService.toggleRepeat();
                 case "Q" -> playerService.showQueue();
                 case "C" -> playerService.clearQueue();
+                case "S" -> {
+                    playerService.stop();
+                    inPlayerMode=false;
+                }
+
                 case "B" -> {
                     inPlayerMode = false;
                     playerService.setSilentMode(true); // Suppress progress bar so it doesn't garble menu

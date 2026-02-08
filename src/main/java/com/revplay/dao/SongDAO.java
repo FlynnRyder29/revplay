@@ -68,6 +68,21 @@ public class SongDAO {
         return songs;
     }
 
+    public Song findById(int songId) {
+        String sql = "SELECT s.*, u.username as artist_name FROM songs s " +
+                "JOIN artists ar ON s.artist_id = ar.artist_id " +
+                "JOIN users u ON ar.user_id = u.user_id WHERE s.song_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, songId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapResultSetToSong(rs);
+        } catch (SQLException e) {
+            logger.error("Find song by ID failed", e);
+        }
+        return null;
+    }
+
     public List<Song> getByArtist(int artistId) {
         String sql = "SELECT s.*, u.username as artist_name FROM songs s " +
                 "JOIN artists ar ON s.artist_id = ar.artist_id " +

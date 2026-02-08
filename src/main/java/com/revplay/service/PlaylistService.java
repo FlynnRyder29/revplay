@@ -8,6 +8,9 @@ public class PlaylistService {
     private PlaylistDAO playlistDAO = new PlaylistDAO();
 
     public Playlist create(int userId, String name, String desc, boolean isPublic) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Playlist name cannot be empty");
+        }
         Playlist p = new Playlist(userId, name, desc, isPublic);
         return playlistDAO.create(p);
     }

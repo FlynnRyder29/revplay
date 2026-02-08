@@ -6,11 +6,13 @@ import com.revplay.model.Song;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+
 public class PlayerService {
     private SongDAO songDAO = new SongDAO();
     private HistoryDAO historyDAO = new HistoryDAO();
 
-    private List<Song> queue = new ArrayList<>();
+    private List<Song> queue = new CopyOnWriteArrayList<>();
     private int currentIndex = 0;
     private volatile boolean isPlaying = false; // Thread-safe flag
     private volatile boolean silentMode = false; // To suppress progress bar
@@ -46,6 +48,13 @@ public class PlayerService {
 
         isPlaying = true;
         Song current = queue.get(currentIndex);
+
+        if (current.getDurationSeconds() <= 0) {
+            System.out.println("Invalid duration. Skipping...");
+            isPlaying = false;
+            return;
+        }
+
         System.out.println("\n▶ Now Playing: " + current.getTitle() + " - " + current.getArtistName());
 
         // Record play stats
@@ -116,6 +125,11 @@ public class PlayerService {
         }
     }
 
+    public void stop() {
+        isPlaying = false;
+        stopThread();
+    }
+
     public void resume() {
         if (!isPlaying && !queue.isEmpty()) {
             isPlaying = true; // Set flag back to true
@@ -134,7 +148,13 @@ public class PlayerService {
     public void next() {
         stopThread(); // Ensure current song stops
 
-        if (queue.isEmpty() || currentIndex >= queue.size() - 1) {
+        if (queue.isEmpty()) {
+            System.out.println("Queue is empty.");
+            isPlaying = false;
+            return;
+        }
+
+        if (currentIndex >= queue.size() - 1) {
             if (!repeat) {
                 System.out.println("\nAutoplay: Fetching random song...");
                 Song randomSong = songDAO.getRandomSong();
@@ -187,5 +207,9 @@ public class PlayerService {
         currentIndex = 0;
         isPlaying = false;
         System.out.println("\nQueue cleared");
+    }
+
+    public int getQueueSize() {
+        return queue.size();
     }
 }
